@@ -63,6 +63,88 @@ void key_exit_epub_cb(epdgui_args_vector_t &args)
     *((int *)(args[0])) = 0;
 }
 
+int getChapterCount(String xml)
+{
+    int count = 0;
+    // parse the meta data
+    tinyxml2::XMLDocument meta_data_doc;
+    auto result = meta_data_doc.Parse(xml.c_str());
+    // finished with the data as it's been parsed
+    if (result != tinyxml2::XML_SUCCESS)
+    {
+        log_d("Could not parse manifest xml");
+        return 0;
+    }
+    auto package = meta_data_doc.FirstChildElement("package");
+    if (!package)
+    {
+        log_d("Could not find package element");
+        return 0;
+    }
+    auto manifest = package->FirstChildElement("manifest");
+    if (!manifest)
+    {
+        log_d("Could not find manifest element");
+        return 0;
+    }
+    // find the root file that has the media-type="application/oebps-package+xml"
+    auto rootfile = manifest->FirstChildElement("item");
+    while (rootfile)
+    {
+        if (String(rootfile->Attribute("media-type")) == "application/xhtml+xml")
+            count++;
+        rootfile = rootfile->NextSiblingElement("item");
+    }
+    return count;
+}
+
+String getChapterFile(String xml, int index)
+{
+    int count = 0;
+    // parse the meta data
+    tinyxml2::XMLDocument meta_data_doc;
+    auto result = meta_data_doc.Parse(xml.c_str());
+    // finished with the data as it's been parsed
+    if (result != tinyxml2::XML_SUCCESS)
+    {
+        log_d("Could not parse manifest xml");
+        return "";
+    }
+    auto package = meta_data_doc.FirstChildElement("package");
+    if (!package)
+    {
+        log_d("Could not find package element");
+        return "";
+    }
+    auto manifest = package->FirstChildElement("manifest");
+    if (!manifest)
+    {
+        log_d("Could not find manifest element");
+        return "";
+    }
+    int chapter = 0;
+    // find the root file that has the media-type="application/oebps-package+xml"
+    auto rootfile = manifest->FirstChildElement("item");
+    while (rootfile)
+    {
+
+        if (String(rootfile->Attribute("media-type")) == "application/xhtml+xml")
+        {
+            if (chapter == index)
+            {
+                const char *full_path = rootfile->Attribute("href");
+                if (full_path)
+                {
+                    return full_path;
+                }
+            }
+            chapter++;
+        }
+        rootfile = rootfile->NextSiblingElement("item");
+    }
+    return "";
+}
+
 String getRootFile(String xml)
 {
     // parse the meta data
@@ -173,16 +255,21 @@ Frame_Epub::Frame_Epub(String title)
     epubText->SetTextMargin(16, 16, 16, 16);
     epubText->SetTextSize(30);
 
-    text = readZipFile("/" + title, "META-INF/container.xml");
+    String container = readZipFile("/" + title, "META-INF/container.xml");
 
-    tinyxml2::XMLDocument meta_data_doc;
-    meta_data_doc.Parse(text.c_str());
-
-    String rootFile = getRootFile(text);
+    String rootFile = getRootFile(container);
 
     String index = readZipFile("/" + title, rootFile);
 
-    epubText->SetText(index);
+    String chapter = getChapterFile(index, 0);
+
+    text = readZipFile("/" + title, rootFile.substring(0, rootFile.lastIndexOf("/") + 1) + chapter);
+
+    // int chapters = getChapterCount(index);
+
+    log_d("FirstChapter: %s", chapter.c_str());
+
+    epubText->SetText(text);
 
     _key_exit = new EPDGUI_Button(8, 12, 150, 48);
     _key_exit->CanvasNormal()->fillCanvas(0);
