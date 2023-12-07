@@ -100,7 +100,7 @@ void EPDGUI_Run(Frame_Base* frame)
             return;
         }
 
-        if (M5.TP.avaliable())
+        if (M5.TP.available())
         {
             M5.TP.update();
             bool is_finger_up = M5.TP.isFingerUp();

@@ -1,30 +1,29 @@
-#include "frame_todo_list.h"
-#include "frame_todo.h"
+#include "frame_epub_list.h"
 
 #define MAX_ITEM_NUM 12
 
 
 void key_todolist_select_cb(epdgui_args_vector_t &args)
 {
-    EPDGUI_Button *key = (EPDGUI_Button*)(args[1]);
-    Frame_Base *frame = new Frame_Todo(key->GetCustomString());
+    /*EPDGUI_Button *key = (EPDGUI_Button*)(args[1]);
+    Frame_Base *frame = new Frame_Epub(key->GetCustomString());
     EPDGUI_PushFrame(frame);
-    *((int*)(args[0])) = 0;
+    *((int*)(args[0])) = 0;*/
 }
 
-Frame_TodoList::Frame_TodoList()
+Frame_EpubList::Frame_EpubList()
 {
-    _frame_name = "Frame_TodoList";
+    _frame_name = "Frame_EpubList";
 
     _is_first = true;
 }
 
-Frame_TodoList::~Frame_TodoList()
+Frame_EpubList::~Frame_EpubList()
 {
 
 }
 
-void Frame_TodoList::newListItem(azure_tasklist_t *list)
+void Frame_EpubList::newListItem(epub_list_t *list)
 {
     EPDGUI_Button *key = new EPDGUI_Button(4, 4 + (_keys.size() % MAX_ITEM_NUM) * 80, 532, 80);
     _keys.push_back(key);
@@ -54,19 +53,19 @@ void Frame_TodoList::newListItem(azure_tasklist_t *list)
         }
     }
 
-    key->setBMPButton(title, String(list->taskmap.size()), ImageResource_item_icon_tasklist_32x32);
+    key->setBMPButton(title, String(list->epubmap.size()), ImageResource_item_icon_tasklist_32x32);
     key->SetCustomString(list->id);
     key->AddArgs(EPDGUI_Button::EVENT_RELEASED, 0, &_is_run);
     key->AddArgs(EPDGUI_Button::EVENT_RELEASED, 1, key);
     key->Bind(EPDGUI_Button::EVENT_RELEASED, key_todolist_select_cb);
-    if(list->taskmap.size() == 0)
+    if(list->epubmap.size() == 0)
     {
         key->SetEnable(false);
     }
 }
 
 
-int Frame_TodoList::run()
+int Frame_EpubList::run()
 {
     if(_is_first)
     {
@@ -160,7 +159,7 @@ int Frame_TodoList::run()
     return 1;
 }
 
-int Frame_TodoList::init(epdgui_args_vector_t &args)
+int Frame_EpubList::init(epdgui_args_vector_t &args)
 {
     _is_run = 1;
     M5.EPD.Clear();

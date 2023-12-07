@@ -341,12 +341,12 @@ void UserMessage(int level, uint32_t timeout, String title, String msg, String e
     canvas.pushCanvas(40, 250, UPDATE_MODE_NONE);
     M5.EPD.UpdateFull(UPDATE_MODE_GC16);
 
-    while(M5.TP.avaliable());
+    while(M5.TP.available());
     M5.TP.flush();
     uint32_t t = millis();
     while(1)
     {
-        if(M5.TP.avaliable())
+        if(M5.TP.available())
         {
             M5.TP.update();
             if(M5.TP.getFingerNum() != 0)

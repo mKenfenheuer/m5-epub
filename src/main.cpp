@@ -1,7 +1,6 @@
 #include <M5EPD.h>
 #include "epdgui/epdgui.h"
 #include "frame/frame.h"
-#include "azure/azure.h"
 #include "resources/binaryttf.h"
 
 static const char kPrenderGlyph[77] = {
@@ -108,7 +107,7 @@ void setup()
     BootPages();
 
     M5.TP.flush();
-    if(M5.TP.avaliable())
+    if(M5.TP.available())
     {
         M5.TP.update();
         if(M5.TP.getFingerNum() != 0)
@@ -175,6 +174,7 @@ void setup()
         EPDGUI_AddFrame("Frame_WifiScan", frame);
         EPDGUI_PushFrame(frame);
     }
+    
     else if(!azure.isLogin())
     {
         Frame_Base *frame = new Frame_TodoLogin();
@@ -186,7 +186,7 @@ void setup()
         Frame_Base *frame = new Frame_TodoList();
         EPDGUI_AddFrame("Frame_TodoList", frame);
         EPDGUI_PushFrame(frame);
-    }
+    }*/
 
     LoadingAnime_32x32_Stop();
 }
