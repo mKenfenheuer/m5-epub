@@ -2,6 +2,7 @@
 #include "epdgui/epdgui.h"
 #include "frame/frame.h"
 #include "resources/binaryttf.h"
+#include "WiFi.h"
 
 static const char kPrenderGlyph[77] = {
     'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', //10
@@ -46,7 +47,7 @@ void waitUser()
     M5.TP.flush();
     while(1)
     {
-        if(M5.TP.avaliable())
+        if(M5.TP.available())
         {
             M5.TP.update();
             if(M5.TP.getFingerNum() != 0)
@@ -104,7 +105,7 @@ void setup()
 
     esp_err_t load_err = LoadSetting();
 
-    BootPages();
+    //BootPages();
 
     M5.TP.flush();
     if(M5.TP.available())
@@ -116,7 +117,7 @@ void setup()
         }
     }
 
-    log_d("M5Todo Beta");
+    log_d("M5 EPAPER " __TIMESTAMP__);
 
     M5EPD_Canvas canvas(&M5.EPD);
     if(SD.exists("/font.ttf"))
@@ -151,14 +152,14 @@ void setup()
     }
     
     LoadingAnime_32x32_Start(254, 424);
+    /*
     esp_err_t wifi_err = ESP_FAIL;
     if(load_err == ESP_OK)
     {
         wifi_err = connectWiFi();
         if(wifi_err == ESP_OK)
         {
-            
-            azure.begin(GetTimeZone());
+            //azure.begin(GetTimeZone());
         }
     }    
 
@@ -174,7 +175,21 @@ void setup()
         EPDGUI_AddFrame("Frame_WifiScan", frame);
         EPDGUI_PushFrame(frame);
     }
-    
+    else
+    {
+        Frame_Base *frame = new Frame_EpubList();
+        EPDGUI_AddFrame("Frame_EpubList", frame);
+        EPDGUI_PushFrame(frame);
+    }
+    */
+   
+    //Frame_Base *frame = new Frame_Epub("Witcher.epub");
+    Frame_Base *list = new Frame_EpubList();
+    //EPDGUI_AddFrame("Frame_Epub", frame);
+    EPDGUI_AddFrame("Frame_EpubList", list);
+    EPDGUI_PushFrame(list);
+
+    /*
     else if(!azure.isLogin())
     {
         Frame_Base *frame = new Frame_TodoLogin();

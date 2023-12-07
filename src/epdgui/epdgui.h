@@ -6,6 +6,7 @@
 #include "epdgui_switch.h"
 #include "epdgui_keyboard.h"
 #include "epdgui_textbox.h"
+#include "epdgui_label.h"
 #include "epdgui_mutexswitch.h"
 #include "../frame/frame_base.h"
 

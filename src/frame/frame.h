@@ -5,5 +5,6 @@
 #include "frame_wifipassword.h"
 #include "frame_setting.h"
 #include "frame_epub_list.h"
+#include "frame_epub.h"
 
 #endif

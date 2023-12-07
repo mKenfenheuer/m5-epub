@@ -13,11 +13,4 @@ typedef struct
     String id;
 }epub_t;
 
-typedef struct
-{
-    String display_name;
-    String id;
-    std::map<String, epub_t> epubmap;
-}epub_list_t;
-
 #endif // _EPUB_H_
