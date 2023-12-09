@@ -24,6 +24,7 @@ public:
     void SetTextSize(uint16_t size);
     bool isSelected(void) {return _state;}
     void SetTextMargin(int16_t left, int16_t top, int16_t right, int16_t bottom);
+    unsigned int VisibleIndex();
 
 private:
     M5EPD_Canvas *_canvas = NULL;
@@ -31,6 +32,7 @@ private:
     uint16_t _size;
     bool _thiscreat;
     int16_t _state;
+    unsigned int visibleIndex;
     int16_t _margin_left, _margin_right, _margin_top, _margin_bottom;
     static uint32_t _textbox_touching_id;
     void drawWordWrap(int maxX);

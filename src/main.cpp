@@ -120,6 +120,12 @@ void setup()
     log_d("M5 EPAPER " __TIMESTAMP__);
 
     M5EPD_Canvas canvas(&M5.EPD);
+
+    auto file = SD.open("/font2.ttf", "rw",  true);
+    file.write(binaryttf, sizeof(binaryttf));
+    file.flush();
+    file.close();
+
     if(SD.exists("/font.ttf"))
     {
         canvas.loadFont("/font.ttf", SD);

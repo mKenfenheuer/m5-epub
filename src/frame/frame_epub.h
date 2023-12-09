@@ -12,6 +12,8 @@ public:
     ~Frame_Epub();
     int init(epdgui_args_vector_t &args);
     int run();
+    int NextPage();
+    int PrevPage();
 
 private:
     void newListItem(epub_t *epub);

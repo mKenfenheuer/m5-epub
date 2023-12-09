@@ -5,8 +5,9 @@
 #include "tinyxml2.h"
 
 UNZIP zip; // statically allocate the UNZIP structure (41K)
-String text = "Error reading EPUB";
-
+String chapter = "Error reading EPUB";
+unsigned int chapterIndex = 0;
+unsigned int textIndex = 0;
 // Functions to access a file on the SD card
 static File myfile;
 
@@ -231,6 +232,89 @@ end:
     return fileText;
 }
 
+String extractElementText(tinyxml2::XMLElement *element);
+
+String extractNodeText(tinyxml2::XMLNode *node)
+{
+    auto text = node->ToText();
+    if (text)
+    {
+        return String(text->Value());
+    }
+
+    auto element = node->ToElement();
+    if (element)
+    {
+        return extractElementText(element);
+    }
+
+    return "";
+}
+
+String extractElementText(tinyxml2::XMLElement *element)
+{
+    String textString = "";
+    int children = element->ChildElementCount();
+    int index = 0;
+
+    if (children > 0)
+    {
+        int index = 0;
+        auto node = element->FirstChild();
+        while (node)
+        {
+            textString += extractNodeText(node);
+            node = node->NextSibling();
+            index++;
+        }
+    }
+    else
+    {
+        if (element->Name() == "h1" ||
+            element->Name() == "h2" ||
+            element->Name() == "h3" ||
+            element->Name() == "h4" ||
+            element->Name() == "h5" ||
+            element->Name() == "h6")
+        {
+            textString += "\n\n<" + String(element->Name()) + ">" + String(element->GetText()) + "</" + String(element->Name()) + ">\n\n";
+        }
+        else
+        {
+            textString += String(element->GetText()) + "\n";
+        }
+    }
+    return textString;
+}
+
+String extractText(String html)
+{
+    // parse the meta data
+    String text = "";
+    tinyxml2::XMLDocument meta_data_doc(true, tinyxml2::COLLAPSE_WHITESPACE);
+    auto result = meta_data_doc.Parse(html.c_str());
+    // finished with the data as it's been parsed
+    if (result != tinyxml2::XML_SUCCESS)
+    {
+        log_d("Could not parse html string");
+        return "";
+    }
+    auto container = meta_data_doc.FirstChildElement("html");
+    if (!container)
+    {
+        log_d("Could not find html element");
+        return "";
+    }
+    auto rootfiles = container->FirstChildElement("body");
+    if (!rootfiles)
+    {
+        log_d("Could not find body element");
+        return "";
+    }
+
+    return extractElementText(rootfiles);
+}
+
 Frame_Epub::Frame_Epub(String title)
 {
     epubFile = title;
@@ -261,15 +345,19 @@ Frame_Epub::Frame_Epub(String title)
 
     String index = readZipFile("/" + title, rootFile);
 
-    String chapter = getChapterFile(index, 0);
+    String chapterFile = getChapterFile(index, 6);
 
-    text = readZipFile("/" + title, rootFile.substring(0, rootFile.lastIndexOf("/") + 1) + chapter);
+    chapter = readZipFile("/" + title, rootFile.substring(0, rootFile.lastIndexOf("/") + 1) + chapterFile);
 
-    // int chapters = getChapterCount(index);
+    log_d("%s", chapter.c_str());
 
-    log_d("FirstChapter: %s", chapter.c_str());
+    chapter = extractText(chapter);
 
-    epubText->SetText(text);
+    log_d("%s", chapter.c_str());
+
+    epubText->SetText(chapter);
+    epubText->Draw(UPDATE_MODE_NONE);
+    textIndex += epubText->VisibleIndex();
 
     _key_exit = new EPDGUI_Button(8, 12, 150, 48);
     _key_exit->CanvasNormal()->fillCanvas(0);
@@ -296,7 +384,44 @@ Frame_Epub::~Frame_Epub(void)
 }
 int Frame_Epub::run()
 {
-    return 2;
+    return 0;
+}
+int Frame_Epub::NextPage()
+{
+    if (chapter.length() <= textIndex)
+        return m5epd_err_t::M5EPD_OUTOFBOUNDS;
+
+
+    long remaining = chapter.length() - textIndex;
+    unsigned int toIndex = textIndex + min(1000l, remaining);
+    toIndex = min(chapter.length() - 1, toIndex);
+    String txt = chapter.substring(textIndex, toIndex);
+    txt.trim();
+
+    epubText->SetText(txt);
+    epubText->Draw(UPDATE_MODE_GC16);
+    textIndex += epubText->VisibleIndex();
+    remaining = chapter.length() - textIndex;
+
+    return 0;
+}
+
+int Frame_Epub::PrevPage()
+{
+    if (textIndex < epubText->VisibleIndex())
+        return m5epd_err_t::M5EPD_OUTOFBOUNDS;
+
+    textIndex -= epubText->VisibleIndex();
+    long remaining = chapter.length() - textIndex;
+    unsigned int toIndex = textIndex + min(1000l, remaining);
+    toIndex = min(chapter.length() - 1, toIndex);
+    String txt = chapter.substring(textIndex, toIndex);
+    txt.trim();
+
+    epubText->SetText(txt);
+    epubText->Draw(UPDATE_MODE_GC16);
+
+    return 0;
 }
 
 int Frame_Epub::init(epdgui_args_vector_t &args)

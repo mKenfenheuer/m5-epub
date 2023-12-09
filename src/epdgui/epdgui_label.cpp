@@ -77,25 +77,42 @@ void EPDGUI_Label::SetTextSize(uint16_t size)
     Draw(UPDATE_MODE_GC16);
 }
 
+unsigned int EPDGUI_Label::VisibleIndex()
+{
+    return visibleIndex;
+}
 void EPDGUI_Label::drawWordWrap(int maxX)
 {
     float sizeperChar = 10.5f * _size / 26.0f;
     int index = 0;
+    int sPosY = 0;
     int sPosX = 0;
     while (index < _data.length())
     {
         String nextWord = _data.substring(index, _data.indexOf(" ", index + 1));
+        int lastIndex = index;
         index += nextWord.length();
         int width = nextWord.length() * sizeperChar;
-        if(sPosX < _canvas->getCursorX())
+        if (sPosX < _canvas->getCursorX())
         {
             sPosX = _canvas->getCursorX();
+        }
+        if (sPosY < _canvas->getCursorY())
+        {
+            sPosX = 0;
+            sPosY = _canvas->getCursorY();
         }
         if (sPosX + width > maxX)
         {
             _canvas->println();
             nextWord.trim();
             sPosX = 0;
+        }
+        if (_canvas->getCursorY() > _canvas->height() - _size)
+        {
+            visibleIndex = lastIndex;
+            log_d("visibleIndex: %d", visibleIndex);
+            break;
         }
         sPosX += width;
         _canvas->print(nextWord);
@@ -210,7 +227,7 @@ void EPDGUI_Label::SetText(String text)
     if (text != _data)
     {
         _data = text;
-        Draw(UPDATE_MODE_A2);
+        //Draw(UPDATE_MODE_A2);
     }
 }
 
